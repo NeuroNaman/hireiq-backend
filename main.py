@@ -60,6 +60,9 @@
 #     }
 
 
+
+
+
 """
 HireIQ — AI Tutor Screening Platform
 FastAPI Application Entry Point v2.0
@@ -81,11 +84,11 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# ── CORS — allow everything ───────────────────────────────────────────────────
+# ── CORS ──────────────────────────────────────────────────────────────────────
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=False,   # MUST be False when allow_origins=["*"]
+    allow_credentials=False,  # Must be False when allow_origins=["*"]
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -103,6 +106,32 @@ async def health():
         "service": "hireiq-screening-api",
         "version": "2.0.0",
     }
+
+
+@app.get("/debug-env")
+async def debug_env():
+    """Check env vars are loaded — remove before production"""
+    return {
+        "LLM_PROVIDER":    os.getenv("LLM_PROVIDER", "NOT SET"),
+        "GROQ_KEY_SET":    bool(os.getenv("GROQ_API_KEY")),
+        "GROQ_KEY_PREFIX": os.getenv("GROQ_API_KEY", "")[:10] + "..." if os.getenv("GROQ_API_KEY") else "NOT SET",
+        "GROQ_MODEL":      os.getenv("GROQ_MODEL", "NOT SET"),
+    }
+
+
+@app.post("/debug-llm")
+async def debug_llm():
+    """Test LLM connection directly — remove before production"""
+    from services.llm_client import chat_completion
+    try:
+        result = await chat_completion(
+            system_prompt="You are a helpful assistant.",
+            messages=[{"role": "user", "content": "Say: LLM connection works!"}],
+            max_tokens=30,
+        )
+        return {"status": "ok", "response": result}
+    except Exception as e:
+        return {"status": "error", "error": str(e), "type": type(e).__name__}
 
 
 @app.get("/")
