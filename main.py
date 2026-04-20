@@ -60,7 +60,6 @@
 #     }
 
 
-
 """
 HireIQ — AI Tutor Screening Platform
 FastAPI Application Entry Point v2.0
@@ -74,18 +73,6 @@ from routers import session, conversation, evaluation, recruiter
 
 load_dotenv()
 
-# ── CORS ──────────────────────────────────────────────────────────────────────
-# On Render: set CORS_ORIGINS=https://your-frontend.vercel.app
-# For dev:   set CORS_ORIGINS=http://localhost:5173
-# Wildcard:  set CORS_ORIGINS=* (allows all — fine for demo)
-_raw = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:3000")
-
-if _raw.strip() == "*":
-    CORS_ORIGINS = ["*"]
-else:
-    CORS_ORIGINS = [o.strip() for o in _raw.split(",") if o.strip()]
-
-# ── App ───────────────────────────────────────────────────────────────────────
 app = FastAPI(
     title="HireIQ Screening API",
     description="AI-powered behavioral interview and evaluation platform for Cuemath.",
@@ -94,10 +81,11 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
+# ── CORS — allow everything ───────────────────────────────────────────────────
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=CORS_ORIGINS,
-    allow_credentials=CORS_ORIGINS != ["*"],  # credentials not allowed with wildcard
+    allow_origins=["*"],
+    allow_credentials=False,   # MUST be False when allow_origins=["*"]
     allow_methods=["*"],
     allow_headers=["*"],
 )
